@@ -1,11 +1,11 @@
 {
-  "name": "computational-research",
+  "name": "p135246",
   "owner": {
     "name": "Pavel Hajek",
     "email": "p135246@gmail.com"
   },
   "metadata": {
-    "description": "Wolfram computational research plugin for Claude Code"
+    "description": "Claude Code plugins by Pavel Hajek"
   },
   "plugins": [
     {

@@ -22,7 +22,7 @@ automatically detects the environment and adapts notebook creation and file path
 
 **Claude Code CLI — from the marketplace**:
 ```bash
-claude plugin marketplace add p135246/plugins
+claude plugin marketplace add p135246/claude-plugins
 claude plugin install computational-research@p135246
 ```
 
