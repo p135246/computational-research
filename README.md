@@ -35,28 +35,29 @@ claude --plugin-dir /path/to/WolframComputationalResearch
 
 ## Skills (Claude invokes automatically)
 
-### `wolfram-research-project`
+### `computational-research`
 
 Scaffolds a complete research project:
 
 ```
 ProjectName/
-├── CLAUDE.md                  ← project memory
-├── ProjectName1.nb            ← first Mathematica notebook
-├── Papers1.nb                 ← paper summaries
+├── CLAUDE.md                             ← project memory
+├── ProjectName1.nb                       ← first Mathematica notebook
+├── Papers1.nb                            ← paper summaries
 ├── Code/
-│   ├── Tools.wl               ← graph utilities
-│   └── ProjectName.wl         ← main code
-├── Papers/                    ← PDFs (Author_Year_Title.pdf)
+│   ├── Tools.wl                          ← shared general utilities
+│   ├── ProjectName.wl                    ← core functions (initial scope)
+│   └── ProjectNameVisualization.wl       ← visualization (initial scope)
+├── Papers/                               ← PDFs (Author_Year_Title.pdf)
 └── Notes/
-    ├── article1.tex           ← your LaTeX article
-    ├── notes1.tex             ← Claude's notes (written on request)
+    ├── article1.tex                      ← your LaTeX article (you write here)
+    ├── notes1.tex                        ← working notes (Claude writes; source for article)
     └── references.bib
 ```
 
 Trigger phrases: "new project on X", "start a project about Y", "scaffold Z".
 
-### `wolfram-notebook`
+### `create-notebook`
 
 Creates `.nb` files from structured Markdown via the Wolfram MCP's
 `ExportString[ImportString[md, {"Markdown","Notebook"}], "NB"]` pipeline.

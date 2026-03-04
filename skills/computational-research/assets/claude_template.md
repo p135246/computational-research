@@ -13,8 +13,11 @@ The interplay between these two approaches is a central question: when does the 
 
 ## Code structure
 
-- `Code/Tools.wl` — shared graph utilities (distance, centrality, geodesic extraction)
-- `Code/{{PROJECT_NAME}}.wl` — core project functions
+- `Code/Tools.wl` — shared general utilities
+- `Code/{{PROJECT_NAME}}.wl` — core functions (initial scope)
+- `Code/{{PROJECT_NAME}}Visualization.wl` — visualization (initial scope)
+
+New functional scopes get their own `Name.wl` + `NameVisualization.wl` pair.
 
 ## Papers
 
@@ -23,8 +26,8 @@ The interplay between these two approaches is a central question: when does the 
 
 ## Notes
 
-`Notes/article1.tex` — LaTeX article scaffold (user writes here)
-`Notes/notes1.tex` — extended project memory in article form (Claude writes here when asked)
+`Notes/article1.tex` — LaTeX article scaffold (user writes here, drawing from notes1.tex)
+`Notes/notes1.tex` — article-form working notes (Claude writes here when asked; source material for the article)
 `Notes/references.bib` — BibTeX references
 
 ## Loading code
@@ -32,4 +35,5 @@ The interplay between these two approaches is a central question: when does the 
 ```wolfram
 Get["Code/Tools.wl"]
 Get["Code/{{PROJECT_NAME}}.wl"]
+Get["Code/{{PROJECT_NAME}}Visualization.wl"]
 ```

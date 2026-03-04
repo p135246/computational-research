@@ -1,5 +1,5 @@
 ---
-name: wolfram-notebook
+name: create-notebook
 description: >
   Create Wolfram Notebooks (.nb) from structured content using the Wolfram MCP.
   Use this skill whenever the user asks to create a notebook, generate a .nb file,
@@ -30,11 +30,17 @@ using the local `Write` tool.
 Use MCP tools in this priority order:
 
 1. **Official Wolfram MCP** — `mcp__Wolfram__WolframLanguageEvaluator` (capital-W "Wolfram")
-   This is the primary tool. Use it whenever available.
+   Primary tool for all Wolfram Language evaluation. Use it for the full
+   `ExportString[ImportString[...]]` pipeline whenever available.
 
 2. **Unofficial Wolfram MCP** — `mcp__wolfram__evaluate` (lowercase "wolfram")
-   Use as fallback if the official MCP is not available or returns an error.
-   Same Wolfram Language code works with both tools.
+   Fallback when the official MCP is not available or returns an error. Same
+   Wolfram Language code works with both tools. Additionally, prefer the unofficial
+   MCP for tasks that benefit from its **LSP integration** — diagnostics, go-to-
+   definition, hover information, and type-aware completions while working in `.wl`
+   files. When editing or inspecting code files (as opposed to just creating
+   notebooks), the unofficial MCP's LSP capabilities make it the better choice even
+   if the official MCP is available.
 
 3. **Last resort** — If neither MCP is available, create a minimal plain-text `.nb`
    file manually using the Write tool with the raw NB format. Warn the user that

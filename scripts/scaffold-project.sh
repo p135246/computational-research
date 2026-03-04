@@ -3,13 +3,13 @@
 #
 # Usage: scaffold-project.sh <ProjectName> ["Topic description"]
 #
-# Called by Claude during wolfram-research-project skill execution.
+# Called by Claude during computational-research skill execution.
 # Claude handles notebook creation and paper downloading via MCP separately.
 
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ASSETS_DIR="$SCRIPT_DIR/../skills/wolfram-research-project/assets"
+ASSETS_DIR="$SCRIPT_DIR/../skills/computational-research/assets"
 
 if [ $# -lt 1 ]; then
   echo "Usage: scaffold-project.sh <ProjectName> [\"Topic description\"]" >&2
@@ -32,7 +32,9 @@ echo "Created directories: $PROJECT_NAME/{Code,Papers,Notes}"
 cp "$ASSETS_DIR/tools_starter.wl" "$PROJECT_NAME/Code/Tools.wl"
 echo "Created: $PROJECT_NAME/Code/Tools.wl"
 
-# ── 3. ProjectName.wl stub ────────────────────────────────────────────────
+# ── 3. ScopeName.wl + ScopeNameVisualization.wl stubs ────────────────────
+# Initial scope name = project name. New scopes get their own Name.wl +
+# NameVisualization.wl pair as the project grows.
 
 cat > "$PROJECT_NAME/Code/$PROJECT_NAME.wl" << EOF
 (* ::Package:: *)
@@ -40,6 +42,13 @@ cat > "$PROJECT_NAME/Code/$PROJECT_NAME.wl" << EOF
 (* Load with: Get["Code/$PROJECT_NAME.wl"] *)
 EOF
 echo "Created: $PROJECT_NAME/Code/$PROJECT_NAME.wl"
+
+cat > "$PROJECT_NAME/Code/${PROJECT_NAME}Visualization.wl" << EOF
+(* ::Package:: *)
+(* ${PROJECT_NAME}Visualization.wl — Visualization functions for $TOPIC_DESCRIPTION *)
+(* Load with: Get["Code/${PROJECT_NAME}Visualization.wl"] *)
+EOF
+echo "Created: $PROJECT_NAME/Code/${PROJECT_NAME}Visualization.wl"
 
 # ── 4. CLAUDE.md ──────────────────────────────────────────────────────────
 
@@ -65,8 +74,8 @@ echo "Created: $PROJECT_NAME/Notes/article1.tex"
 # ── 6. notes1.tex ─────────────────────────────────────────────────────────
 
 sed \
-  -e "s|{{TITLE}}|Project Notes: $PROJECT_NAME|g" \
-  -e "s|{{ABSTRACT}}|Running notes and observations for the $PROJECT_NAME project ($TOPIC_DESCRIPTION).|g" \
+  -e "s|{{TITLE}}|Working Notes: $PROJECT_NAME|g" \
+  -e "s|{{ABSTRACT}}|Article-form working notes for the $PROJECT_NAME project ($TOPIC_DESCRIPTION). Written by Claude when asked; serves as source material for article1.tex.|g" \
   -e "s|{{CORE_SECTION_TITLE}}|Observations|g" \
   "$ASSETS_DIR/article_template.tex" > "$PROJECT_NAME/Notes/notes1.tex"
 echo "Created: $PROJECT_NAME/Notes/notes1.tex"
@@ -101,12 +110,13 @@ echo ""
 echo "=== Project scaffolded: $PROJECT_NAME/ ==="
 echo ""
 echo "  Code/"
-echo "    Tools.wl          — shared graph utilities"
-echo "    $PROJECT_NAME.wl  — main project code (empty)"
+echo "    Tools.wl                        — shared general utilities"
+echo "    $PROJECT_NAME.wl               — core functions (initial scope, empty)"
+echo "    ${PROJECT_NAME}Visualization.wl — visualization (initial scope, empty)"
 echo "  Papers/             — reference PDFs (Author_Year_Title.pdf)"
 echo "  Notes/"
 echo "    article1.tex      — LaTeX article scaffold (your writing space)"
-echo "    notes1.tex        — extended project memory (Claude writes here when asked)"
+echo "    notes1.tex        — article-form working notes (Claude writes here when asked)"
 echo "    references.bib    — BibTeX with Wolfram standard references"
 echo "  CLAUDE.md           — project context for future Claude sessions"
 echo ""

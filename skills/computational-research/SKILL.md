@@ -1,5 +1,5 @@
 ---
-name: wolfram-research-project
+name: computational-research
 description: >
   Scaffold a new Wolfram-model research project with the standard folder structure
   (Code/, Papers/, Notes/, numbered notebooks) and pre-populated templates.
@@ -51,13 +51,14 @@ Run `${CLAUDE_PLUGIN_ROOT}/scripts/check-env.sh` to verify the environment.
 ├── CLAUDE.md
 ├── <ProjectName>1.nb          ← first Mathematica notebook
 ├── Code/
-│   ├── Tools.wl               ← shared utilities (starter template)
-│   └── <ProjectName>.wl       ← main project code (starter template)
+│   ├── Tools.wl               ← shared general utilities
+│   ├── <ProjectName>.wl       ← core functions (initial scope)
+│   └── <ProjectName>Visualization.wl  ← visualization (initial scope)
 ├── Papers1.nb                  ← paper summaries notebook (one section per paper)
 ├── Papers/                     ← reference PDFs only (Author_Year_Title.pdf)
 └── Notes/
     ├── article1.tex           ← LaTeX scaffold for user's article (user writes here)
-    ├── notes1.tex             ← extended project memory in article form (Claude writes here on request)
+    ├── notes1.tex             ← article-form working notes (Claude writes here on request)
     └── references.bib         ← BibTeX file with header comment
 ```
 
@@ -77,15 +78,16 @@ Run the scaffold script — this replaces the manual mkdir + template steps:
 ```
 
 The script creates:
-- `<ProjectName>/Code/Tools.wl` — graph utilities
-- `<ProjectName>/Code/<ProjectName>.wl` — empty package stub
+- `<ProjectName>/Code/Tools.wl` — shared general utilities
+- `<ProjectName>/Code/<ProjectName>.wl` — core functions stub (initial scope)
+- `<ProjectName>/Code/<ProjectName>Visualization.wl` — visualization stub (initial scope)
 - `<ProjectName>/CLAUDE.md` — from claude_template.md with substitutions
 - `<ProjectName>/Notes/article1.tex` — LaTeX article scaffold
-- `<ProjectName>/Notes/notes1.tex` — project notes file
+- `<ProjectName>/Notes/notes1.tex` — working notes file
 - `<ProjectName>/Notes/references.bib` — with standard Wolfram references
 
 If the script fails (e.g., permission issue), fall back to creating these files
-manually using the templates in `${CLAUDE_PLUGIN_ROOT}/skills/wolfram-research-project/assets/`.
+manually using the templates in `${CLAUDE_PLUGIN_ROOT}/skills/computational-research/assets/`.
 
 The generated CLAUDE.md uses the template from `assets/claude_template.md`:
 replace `{{PROJECT_NAME}}` with the actual project name and `{{TOPIC_DESCRIPTION}}`
@@ -111,18 +113,19 @@ Computational results / Discussion and outlook.
 
 ### 3. notes1.tex purpose and rules
 
-This is a separate file from the article scaffold. It serves as **extended project
-memory** — a readable article-form document where Claude records findings **only
-when the user explicitly asks** (e.g. "note this", "write this down", "record that",
-"add to notes").
+`notes1.tex` is written in proper article form and serves as **working notes and
+source material** from which `article1.tex` gets written. It is a proper paper-form
+intermediate document. Claude writes to it when explicitly asked; the user reads it
+and draws from it when composing the final article.
 
 **Usage rules for notes1.tex:**
-- **Only write when the user explicitly asks.** Do not auto-append during normal work.
+- **Only write when the user explicitly asks.** Triggers: "note this", "write this
+  down", "record that", "add to notes". Do not auto-append during normal work.
 - Write in proper article form — concise, mathematically precise, with citations.
 - Organize into sections as notes grow; group related results together.
 - Include tentative conjectures, open questions, partial results.
 
-**Step 3 — Versioning rule (important):**
+**Versioning rule (important):**
 When `notes1.tex` grows past ~300 lines of content (excluding the preamble), or when
 the user explicitly asks to start a fresh notes file:
 1. Add a pointer at the end of the current file: "Continued in notes2.tex"
@@ -134,9 +137,19 @@ the user explicitly asks to start a fresh notes file:
 Already created by the scaffold script with standard Wolfram-model references.
 Add additional BibTeX entries whenever papers are downloaded (step 7).
 
-### 5. Create starter Code files
+### 5. Code files and scope convention
 
-Already created by the scaffold script. Both files are ready to use.
+Already created by the scaffold script. The Code/ layout follows a scope-based pattern:
+
+- **`Tools.wl`** — shared general utilities used across the whole project.
+- **`<ScopeName>.wl`** — core functions for a named functional scope.
+- **`<ScopeName>Visualization.wl`** — visualization functions for that scope.
+
+`ScopeName` is a CamelCase functional grouping (e.g. `RicciCurvature`,
+`HypergraphEmbedding`). The project name is used as the initial scope name at
+scaffold time. As the project grows, introduce new scope pairs (`Name.wl` +
+`NameVisualization.wl`) for each new functional area. Never put visualization
+code in the core `.wl` file.
 
 ### 6. Create the first notebook
 
@@ -145,12 +158,12 @@ Create `<ProjectName>1.nb`. Priority order:
 **Primary**: Use `mcp__wolfram__create_notebook` MCP tool:
 ```
 path: "<ProjectName>/<ProjectName>1.nb"
-cells: ["Get[\"Code/Tools.wl\"]\nGet[\"Code/<ProjectName>.wl\"]"]
+cells: ["Get[\"Code/Tools.wl\"]\nGet[\"Code/<ProjectName>.wl\"]\nGet[\"Code/<ProjectName>Visualization.wl\"]"]
 ```
 
-**Fallback** (if MCP unavailable or fails): Use the wolfram-notebook skill's
+**Fallback** (if MCP unavailable or fails): Use the create-notebook skill's
 ExportString technique — build a markdown string with a Title cell and a Setup
-section containing the package loads, then write the resulting string to
+section containing the three package loads, then write the resulting string to
 `<ProjectName>/<ProjectName>1.nb` using the Write tool.
 
 ### 6b. Create the papers notebook
@@ -167,7 +180,7 @@ Then add a Title cell via `mcp__wolfram__append_cells_json`:
 [{"content": "Papers — <ProjectName>", "style": "Title"}]
 ```
 
-**Fallback**: Use the wolfram-notebook skill's ExportString technique to create
+**Fallback**: Use the create-notebook skill's ExportString technique to create
 a minimal notebook with just the title.
 
 ### 7. Download key reference papers
@@ -228,8 +241,8 @@ Tell the user:
 - Briefly describe what's in each folder
 - **List the papers that were downloaded and summarised**
 - Mention they can start working in `<ProjectName>1.nb`
-- Explain that `Notes/notes1.tex` is the extended project memory — say "note this"
-  to record findings in article form with citations
-- Explain that `Notes/article1.tex` is the article scaffold to write into themselves
+- Explain the notes/article relationship: `Notes/notes1.tex` is the article-form
+  working notes (say "note this" to have Claude write here); `Notes/article1.tex`
+  is the final article scaffold they write themselves, drawing from notes1.tex
 - Mention `/computational-research:add-paper` for adding future papers
 - Suggest next steps based on the papers and topic
