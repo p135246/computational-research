@@ -15,8 +15,9 @@ Steps:
 2. **Save the PDF** to `Papers/` as `Author_Year_Title.pdf` (first author's last
    name, year, 2–4 word title, underscores, no special characters).
 
-3. **Add summary section to Papers1.nb** (or latest PapersN.nb) using
-   `mcp__wolfram__append_cells_json`. Include:
+3. **Add summary section to Papers1.nb** (or latest PapersN.nb) by reading the
+   existing notebook, appending new cells, and rewriting via the ExportString
+   pipeline (see the create-notebook skill). Include:
    - Section cell: "Author Year — Short Title"
    - Text cell: full title, authors, year, arXiv ID / DOI
    - Text cell: 3–4 sentence abstract summary in your own words

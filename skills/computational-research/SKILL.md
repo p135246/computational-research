@@ -199,62 +199,35 @@ code in the core `.wl` file.
 
 ### 6. Create the first notebook
 
-Create `<ProjectName>1.nb`. The method depends on the detected mode:
+Create `<ProjectName>1.nb` using the **create-notebook** skill's ExportString pipeline.
+This works uniformly in both local and Cowork mode — no mode-specific branching needed.
 
-**Local mode — primary**: Use `mcp__wolfram__create_notebook` MCP tool:
+Build a markdown string with a Title and a Setup section containing the three package
+loads, run the full pipeline (markdown → `ImportString` → post-process → `ExportString`)
+via the Wolfram MCP, then write the resulting string to `<ProjectName>/<ProjectName>1.nb`
+using the Write tool.
+
+Example markdown content:
 ```
-path: "<ProjectName>/<ProjectName>1.nb"
-cells: ["Get[\"Code/Tools.wl\"]\nGet[\"Code/<ProjectName>.wl\"]\nGet[\"Code/<ProjectName>Visualization.wl\"]"]
+# <ProjectName>
+## Setup
+```wolfram
+Get["Code/Tools.wl"]
+Get["Code/<ProjectName>.wl"]
+Get["Code/<ProjectName>Visualization.wl"]
 ```
-
-**Local mode — fallback** (if MCP unavailable or fails): Use the create-notebook
-skill's ExportString technique — build a markdown string with a Title cell and a
-Setup section containing the three package loads, then write the resulting string
-to `<ProjectName>/<ProjectName>1.nb` using the Write tool.
-
-**Cowork mode**: The Wolfram MCP **cannot** write to the mounted filesystem.
-Use the ExportString two-step workflow:
-
-1. **Generate** the notebook content via MCP evaluation (`mcp__wolfram__evaluate`):
-   ```
-   ExportString[Notebook[{...cells...}], "NB"]
-   ```
-   Use the create-notebook skill's full pipeline (markdown → ImportString →
-   post-process → ExportString) for rich notebooks, or build cells directly
-   for simple ones like the initial project notebook.
-
-2. **Write** the returned string to the target file on the mounted filesystem
-   using the Write/Bash tool:
-   ```
-   Write tool → $WORKSPACE_PATH/<ProjectName>/<ProjectName>1.nb
-   ```
+```
 
 ### 6b. Create the papers notebook
 
-Create `Papers1.nb` in the project root.
+Create `Papers1.nb` in the project root using the same ExportString pipeline.
+Build a minimal markdown with just the title:
 
-**Local mode — primary**: Use `mcp__wolfram__create_notebook`:
 ```
-path: "<ProjectName>/Papers1.nb"
-cells: []
-```
-Then add a Title cell via `mcp__wolfram__append_cells_json`:
-```
-[{"content": "Papers — <ProjectName>", "style": "Title"}]
+# Papers — <ProjectName>
 ```
 
-**Local mode — fallback**: Use the create-notebook skill's ExportString technique
-to create a minimal notebook with just the title.
-
-**Cowork mode**: Same two-step workflow as step 6:
-1. Generate via `ExportString[Notebook[{Cell["Papers — <ProjectName>", "Title"]}], "NB"]`
-2. Write the string to `$WORKSPACE_PATH/<ProjectName>/Papers1.nb`
-
-After creating the notebook, subsequent cell appends via
-`mcp__wolfram__append_cells_json` **may work** if the MCP can see the file
-(e.g., if the notebook was also created in the MCP's local filesystem). If
-append fails, accumulate all cells and regenerate the entire notebook via
-ExportString.
+Run the pipeline and write the result to `<ProjectName>/Papers1.nb`.
 
 ### 7. Download key reference papers
 
@@ -275,7 +248,19 @@ do it as part of scaffolding, not as a follow-up suggestion.
    first author's last name, publication year, short title (2–4 words, underscores).
    Examples: `Ollivier_2009_RicciCurvatureMarkovChains.pdf`
 
-4. **Add a summary section to Papers1.nb** via `mcp__wolfram__append_cells_json`.
+4. **Add a summary section to Papers1.nb.** To append to an existing notebook,
+   use the read → append → rewrite workflow:
+   1. Read the existing `.nb` file content as a string
+   2. Build the new cells as markdown (Section heading + Text cells for each paper)
+   3. Convert the new markdown to notebook cells via the create-notebook pipeline
+      (`ImportString` → post-process → get cell list)
+   4. Merge the new cells into the existing notebook expression and `ExportString`
+      the result, then write it back to disk
+
+   Alternatively, if the notebook is short, rebuild the entire notebook from
+   scratch as markdown (title + all existing paper sections + new paper section)
+   and run the full pipeline.
+
    Each paper gets:
    - Section cell: "Author Year — Short Title"
    - Text cell: full title, authors, year, arXiv ID or DOI
@@ -297,7 +282,8 @@ notebooks and conceptual grounding related to the project topic. This step is **
 1. **Scan the Technical Introduction** using `WebFetch` on
    `https://wolframphysics.org/technical-introduction/`. Read the table of contents and
    identify any sections that directly relate to the project topic. Summarise the relevant
-   connections in a Text cell appended to `<ProjectName>1.nb`.
+   connections in a Text cell appended to `<ProjectName>1.nb` (using the read → append →
+   rewrite workflow described in step 7).
 
 2. **Search the Wolfram Community Summer School** using `WebFetch` on
    `https://community.wolfram.com/content?curTag=wolfram%20summer%20school`
@@ -311,13 +297,15 @@ notebooks and conceptual grounding related to the project topic. This step is **
 
 3. If no directly downloadable notebooks are found, record the relevant post URLs in a
    Text cell in `Papers1.nb` under a "Wolfram Community Resources" section header.
+   Use the same read → append → rewrite workflow.
 
 ### 8. Paper management convention (ongoing)
 
 Throughout the project's life, whenever new papers are added:
 - Use `/computational-research:add-paper <arXivID or search>` for ongoing paper addition
 - Always rename to `Author_Year_Title.pdf` format in `Papers/`
-- Always append a new section to `Papers1.nb` (or latest PapersN.nb)
+- Always append a new section to `Papers1.nb` (or latest PapersN.nb) using the
+  read → append → rewrite workflow described in step 7
 - Always add BibTeX entries to `Article/references.bib`
 
 ### 9. Notes management convention (ongoing)

@@ -92,6 +92,12 @@ the `Write` tool to save it locally.
 3. **Write** the returned string to the target `.nb` file using the `Write` tool
 4. **Verify** by calling `mcp__wolfram__list_cells` on the written file to confirm cell count
 
+**Note on Cowork mode**: The Write tool operates on the local/mounted filesystem, so
+step 3 works uniformly in both local and Cowork mode. However, `mcp__wolfram__list_cells`
+(step 4) requires the unofficial MCP to read the file — this may fail in Cowork mode
+if the MCP kernel cannot see the mounted path. In that case, skip verification or
+check the file size as a sanity test instead.
+
 ## Named templates
 
 When the user doesn't specify a structure, ask which template fits best (or infer from context):
