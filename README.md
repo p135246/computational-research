@@ -6,10 +6,92 @@ Wolfram MCP integration.
 
 ## Requirements
 
-- [Claude Code](https://claude.ai/claude-code) v1.0.33+
-- [Wolfram Engine](https://www.wolfram.com/engine/) or Mathematica (for notebook creation)
+- [Claude Code](https://claude.ai/claude-code) v1.0.33+ (or Claude Desktop with Cowork)
+- [Wolfram Engine](https://www.wolfram.com/engine/) or Mathematica
 - [wolframscript](https://www.wolfram.com/wolframscript/) in PATH
-- [Wolfram MCP server](https://github.com/WolframResearch/wolfram-mcp) (local or remote)
+
+### MCP servers
+
+This plugin relies on four MCP servers. They must be installed and configured
+manually — Claude Code/Desktop does not auto-install MCP dependencies from plugins.
+
+| Server | Purpose | Source |
+|--------|---------|--------|
+| **Wolfram** (official) | Wolfram Language evaluation | Wolfram paclet `Wolfram/MCPServer` (ships with Mathematica 14.2+) |
+| **wolfram** (unofficial) | Notebook creation and editing | [sw1sh/WolframMCP](https://github.com/sw1sh/WolframMCP) |
+| **arxiv** | Search and download arXiv papers | [blazickjp/arxiv-mcp-server](https://github.com/blazickjp/arxiv-mcp-server) |
+| **arxiv-latex-mcp** | Read LaTeX source of arXiv papers | [takashiishida/arxiv-latex-mcp](https://github.com/takashiishida/arxiv-latex-mcp) |
+
+You need **at least one** Wolfram MCP (official or unofficial). The unofficial one
+is required for notebook creation/editing; the official one suffices for evaluation only.
+Both arXiv servers are needed for the full paper management workflow.
+
+<details>
+<summary><strong>Installation instructions</strong></summary>
+
+#### Wolfram MCP (official)
+
+Runs directly from the Wolfram kernel as a paclet. No separate install needed if
+you have Mathematica 14.2+. Add to your Claude config:
+
+```json
+"Wolfram": {
+  "command": "/Applications/Wolfram.app/Contents/MacOS/wolfram",
+  "args": ["-run", "PacletSymbol[\"Wolfram/MCPServer\",\"Wolfram`MCPServer`StartMCPServer\"][]", "-noinit", "-noprompt"],
+  "env": {
+    "MCP_SERVER_NAME": "Wolfram"
+  }
+}
+```
+
+#### Wolfram MCP (unofficial)
+
+```bash
+git clone https://github.com/sw1sh/WolframMCP.git
+cd WolframMCP
+python -m venv .venv && source .venv/bin/activate
+pip install -e .
+```
+
+```json
+"wolfram": {
+  "command": "/path/to/.venv/bin/python",
+  "args": ["-m", "wolfram_mcp.server", "--kernel-path", "/Applications/Wolfram.app/Contents/MacOS/WolframKernel", "--transport", "stdio"],
+  "env": { "PYTHONUNBUFFERED": "1" }
+}
+```
+
+#### arXiv MCP
+
+```bash
+pip install arxiv-mcp-server
+```
+
+```json
+"arxiv": {
+  "command": "arxiv-mcp-server",
+  "args": ["--storage-path", "/path/to/ArxivPapers"],
+  "env": { "PYTHONUNBUFFERED": "1" }
+}
+```
+
+#### arXiv LaTeX MCP
+
+```bash
+git clone https://github.com/takashiishida/arxiv-latex-mcp.git
+cd arxiv-latex-mcp
+uv sync
+```
+
+```json
+"arxiv-latex-mcp": {
+  "command": "uv",
+  "args": ["--directory", "/path/to/arxiv-latex-mcp", "run", "server/main.py"],
+  "env": { "PYTHONUNBUFFERED": "1" }
+}
+```
+
+</details>
 
 Also works in **Cowork mode** (remote VM with mounted workspace) — the skill
 automatically detects the environment and adapts notebook creation and file paths.
