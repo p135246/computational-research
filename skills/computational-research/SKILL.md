@@ -13,7 +13,7 @@ description: >
 
 # Wolfram-Model Research Project Scaffolder
 
-You are setting up a new research project for Pavel Hajek at the Wolfram Institute.
+You are setting up a new research project for the user.
 Every project follows the same physical layout and intellectual pattern: it connects
 some area of mathematics or physics to Wolfram models (hypergraph rewriting, multiway
 systems, rulial space, etc.) and develops the connection through Wolfram Language
@@ -31,18 +31,64 @@ Before scaffolding, you need two things:
    or "Ollivier-Ricci curvature on hypergraph rewriting systems". This goes into
    the CLAUDE.md and the research notes abstract.
 
-If the user already provided these in their message, don't ask again.
+The scaffold script also fills in the **author name** and **email** for LaTeX
+templates. Infer these from the user's profile or chat context. If unknown,
+the script defaults to `Pavel H\'ajek` / `p135246@gmail.com`.
+
+If the user already provided the project name and topic in their message, don't
+ask again.
+
+## Cowork mode vs local mode
+
+This skill runs in two environments:
+
+- **Local mode** (default): Claude runs on the user's machine. The filesystem is
+  directly accessible to both scripts and MCP tools. `mcp__wolfram__create_notebook`
+  can write to any local path.
+- **Cowork mode**: Claude runs in a remote VM. The user's workspace is mounted
+  (typically at a path like `/sessions/<id>/mnt/<folder>/`). Key differences:
+  - The Wolfram MCP kernel runs in a **separate** environment and **cannot** write
+    to the mounted filesystem (you'll get `[Errno 30] Read-only file system`).
+  - The scaffold script must be told where to write files (the mounted workspace
+    path), since its default CWD is the VM session root, not the workspace.
+  - Notebook creation must use the **ExportString fallback** exclusively — generate
+    the notebook content as a string via MCP, then write it to the mounted
+    filesystem using the Write/Bash tool.
+
+**Detection heuristic**: Cowork mode is likely when:
+- The working directory contains `/sessions/` or `/mnt/` in its path, or
+- `check-env.sh` reports no local Wolfram MCP, but `mcp__wolfram__ping` succeeds
+
+When Cowork mode is detected, set `WORKSPACE_PATH` to the mounted workspace
+directory (the directory where the project folder should be created) and use it
+throughout.
 
 ## Step 0: Environment check (before anything else)
 
 Run `${CLAUDE_PLUGIN_ROOT}/scripts/check-env.sh` to verify the environment.
 
+Then, **regardless of what the script reports**, test MCP availability directly
+by calling `mcp__wolfram__ping`. This is the authoritative test — the script can
+only detect local MCP installations, but in Cowork mode the MCP is available
+remotely.
+
+Use the combined results to determine the mode:
+
+| check-env.sh MCP result | mcp__wolfram__ping | Mode |
+|-------------------------|--------------------|------|
+| Detected | pong | Local — use MCP tools directly |
+| Not detected | pong | **Cowork** — MCP works but can't write to local filesystem |
+| Not detected | fails | No MCP — use ExportString fallback or skip notebooks |
+| Detected | fails | Unusual — try ExportString fallback |
+
 - If **wolframscript is missing**: warn the user, then proceed with all non-notebook
   steps. Skip notebook creation (steps 6 and 6b) and note at the end that notebooks
   must be created manually once Wolfram is installed.
-- If **Wolfram MCP is unavailable**: notebook creation will use the ExportString
-  fallback described in step 6. Proceed normally.
+- If **Wolfram MCP is unavailable** (both local detection and ping fail): notebook
+  creation will use the ExportString fallback described in step 6. Proceed normally.
 - If **both are missing**: scaffold files only; note both limitations clearly.
+- If **Cowork mode detected**: set `WORKSPACE_PATH` to the mounted workspace directory
+  and pass it to the scaffold script. Use ExportString for all notebook creation.
 
 ## Folder structure to create
 
@@ -71,11 +117,20 @@ explicitly asks for a new one.
 
 ### 1. Scaffold directories and file templates (script)
 
-Run the scaffold script — this replaces the manual mkdir + template steps:
+Run the scaffold script:
 
+**Local mode:**
 ```bash
-"${CLAUDE_PLUGIN_ROOT}/scripts/scaffold-project.sh" "<ProjectName>" "<topic description>"
+"${CLAUDE_PLUGIN_ROOT}/scripts/scaffold-project.sh" "<ProjectName>" "<topic description>" "." "<Author Name>" "<email>"
 ```
+
+**Cowork mode** (pass the mounted workspace path as third argument):
+```bash
+"${CLAUDE_PLUGIN_ROOT}/scripts/scaffold-project.sh" "<ProjectName>" "<topic description>" "$WORKSPACE_PATH" "<Author Name>" "<email>"
+```
+
+The script `cd`s into the output directory before creating the project tree, so
+all paths resolve correctly regardless of where the shell's CWD is.
 
 The script creates:
 - `<ProjectName>/Code/Tools.wl` — shared general utilities
@@ -97,8 +152,8 @@ as if explaining the project to a colleague who will pick it up cold.
 
 ### 2. article1.tex purpose
 
-The LaTeX article scaffold (`Article/article1.tex`) is **Pavel's writing space** — a
-skeleton he will write into himself over time to produce a standalone paper. Because
+The LaTeX article scaffold (`Article/article1.tex`) is the **user's writing space** — a
+skeleton they will write into over time to produce a standalone paper. Because
 of this:
 
 - Keep the scaffold minimal: section headings, a placeholder abstract, and maybe
@@ -153,24 +208,41 @@ code in the core `.wl` file.
 
 ### 6. Create the first notebook
 
-Create `<ProjectName>1.nb`. Priority order:
+Create `<ProjectName>1.nb`. The method depends on the detected mode:
 
-**Primary**: Use `mcp__wolfram__create_notebook` MCP tool:
+**Local mode — primary**: Use `mcp__wolfram__create_notebook` MCP tool:
 ```
 path: "<ProjectName>/<ProjectName>1.nb"
 cells: ["Get[\"Code/Tools.wl\"]\nGet[\"Code/<ProjectName>.wl\"]\nGet[\"Code/<ProjectName>Visualization.wl\"]"]
 ```
 
-**Fallback** (if MCP unavailable or fails): Use the create-notebook skill's
-ExportString technique — build a markdown string with a Title cell and a Setup
-section containing the three package loads, then write the resulting string to
-`<ProjectName>/<ProjectName>1.nb` using the Write tool.
+**Local mode — fallback** (if MCP unavailable or fails): Use the create-notebook
+skill's ExportString technique — build a markdown string with a Title cell and a
+Setup section containing the three package loads, then write the resulting string
+to `<ProjectName>/<ProjectName>1.nb` using the Write tool.
+
+**Cowork mode**: The Wolfram MCP **cannot** write to the mounted filesystem.
+Use the ExportString two-step workflow:
+
+1. **Generate** the notebook content via MCP evaluation (`mcp__wolfram__evaluate`):
+   ```
+   ExportString[Notebook[{...cells...}], "NB"]
+   ```
+   Use the create-notebook skill's full pipeline (markdown → ImportString →
+   post-process → ExportString) for rich notebooks, or build cells directly
+   for simple ones like the initial project notebook.
+
+2. **Write** the returned string to the target file on the mounted filesystem
+   using the Write/Bash tool:
+   ```
+   Write tool → $WORKSPACE_PATH/<ProjectName>/<ProjectName>1.nb
+   ```
 
 ### 6b. Create the papers notebook
 
-Create `Papers1.nb` in the project root. Priority order:
+Create `Papers1.nb` in the project root.
 
-**Primary**: Use `mcp__wolfram__create_notebook`:
+**Local mode — primary**: Use `mcp__wolfram__create_notebook`:
 ```
 path: "<ProjectName>/Papers1.nb"
 cells: []
@@ -180,8 +252,18 @@ Then add a Title cell via `mcp__wolfram__append_cells_json`:
 [{"content": "Papers — <ProjectName>", "style": "Title"}]
 ```
 
-**Fallback**: Use the create-notebook skill's ExportString technique to create
-a minimal notebook with just the title.
+**Local mode — fallback**: Use the create-notebook skill's ExportString technique
+to create a minimal notebook with just the title.
+
+**Cowork mode**: Same two-step workflow as step 6:
+1. Generate via `ExportString[Notebook[{Cell["Papers — <ProjectName>", "Title"]}], "NB"]`
+2. Write the string to `$WORKSPACE_PATH/<ProjectName>/Papers1.nb`
+
+After creating the notebook, subsequent cell appends via
+`mcp__wolfram__append_cells_json` **may work** if the MCP can see the file
+(e.g., if the notebook was also created in the MCP's local filesystem). If
+append fails, accumulate all cells and regenerate the entire notebook via
+ExportString.
 
 ### 7. Download key reference papers
 

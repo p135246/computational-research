@@ -2,7 +2,7 @@
   "name": "computational-research",
   "owner": {
     "name": "Pavel Hajek",
-    "email": "phajek@wolframinstitute.org"
+    "email": "p135246@gmail.com"
   },
   "metadata": {
     "description": "Wolfram computational research plugin for Claude Code"
@@ -15,10 +15,10 @@
         "repo": "p135246/computational-research"
       },
       "description": "Scaffold Wolfram computational research projects and create Mathematica notebooks. Includes environment checks, paper management, and LaTeX note-taking.",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "author": {
         "name": "Pavel Hajek",
-        "email": "phajek@wolframinstitute.org"
+        "email": "p135246@gmail.com"
       },
       "homepage": "https://github.com/p135246/computational-research",
       "repository": "https://github.com/p135246/computational-research",

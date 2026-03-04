@@ -9,7 +9,10 @@ Wolfram MCP integration.
 - [Claude Code](https://claude.ai/claude-code) v1.0.33+
 - [Wolfram Engine](https://www.wolfram.com/engine/) or Mathematica (for notebook creation)
 - [wolframscript](https://www.wolfram.com/wolframscript/) in PATH
-- [Wolfram MCP server](https://github.com/WolframResearch/wolfram-mcp) (local)
+- [Wolfram MCP server](https://github.com/WolframResearch/wolfram-mcp) (local or remote)
+
+Also works in **Cowork mode** (remote VM with mounted workspace) — the skill
+automatically detects the environment and adapts notebook creation and file paths.
 
 ## Installation
 
@@ -53,7 +56,7 @@ ProjectName/
 │   ├── ProjectName.wl                    ← core functions (initial scope)
 │   └── ProjectNameVisualization.wl       ← visualization (initial scope)
 ├── Papers/                               ← PDFs (Author_Year_Title.pdf)
-└── Notes/
+└── Article/
     ├── article1.tex                      ← your LaTeX article (you write here)
     ├── notes1.tex                        ← working notes (Claude writes; source for article)
     └── references.bib
@@ -74,7 +77,7 @@ Trigger phrases: "create a notebook", "make a .nb for X", "put this in a noteboo
 | Script | Description |
 |--------|-------------|
 | `scripts/check-env.sh` | Checks kernel (wolframscript eval) and MCP server installation |
-| `scripts/scaffold-project.sh <Name> "topic"` | Creates directory structure and all text files |
+| `scripts/scaffold-project.sh <Name> "topic" [output-dir] ["Author"] ["email"]` | Creates directory structure and all text files |
 
 The scaffold script is called by Claude during project creation; the check-env
 script is invoked by `/computational-research:check-env`.

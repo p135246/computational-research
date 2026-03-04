@@ -100,9 +100,10 @@ for cfg in "${MCP_CONFIGS[@]}"; do
 done
 
 if [ "$MCP_FOUND" -eq 0 ]; then
-  fail "Wolfram MCP server not detected"
-  warn "Install: https://github.com/WolframResearch/wolfram-mcp"
-  warn "Or check /mcp inside Claude to see active MCP servers"
+  warn "Wolfram MCP server not detected locally"
+  warn "In remote/Cowork environments the MCP may be available as a remote tool."
+  warn "Run mcp__wolfram__ping inside Claude to test MCP availability directly."
+  warn "Install locally: https://github.com/WolframResearch/wolfram-mcp"
 else
   ok "To confirm MCP is active in this session, run /mcp inside Claude"
 fi
@@ -115,8 +116,9 @@ echo "=== Summary ==="
 if [ -n "$WOLFRAMSCRIPT" ] && [ "$RESULT" = "2" ] && [ "$MCP_FOUND" -eq 1 ]; then
   echo -e "  ${GREEN}Environment ready for Wolfram research.${NC}"
 elif [ -n "$WOLFRAMSCRIPT" ] && [ "$MCP_FOUND" -eq 0 ]; then
-  echo -e "  ${YELLOW}Kernel available, but MCP server not detected.${NC}"
-  echo "  Notebook creation via MCP will fall back to ExportString mode."
+  echo -e "  ${YELLOW}Kernel available, but MCP server not detected locally.${NC}"
+  echo "  MCP may still be available remotely — test with mcp__wolfram__ping."
+  echo "  Notebook creation via MCP will fall back to ExportString mode if needed."
 elif [ -z "$WOLFRAMSCRIPT" ] && [ "$MCP_FOUND" -eq 1 ]; then
   echo -e "  ${YELLOW}MCP server available, but wolframscript not in PATH.${NC}"
   echo "  Direct kernel evaluation commands will not work."

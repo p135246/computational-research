@@ -1,10 +1,10 @@
 {
   "name": "computational-research",
   "version": "1.0.0",
-  "description": "Scaffold Wolfram computational research projects and create Mathematica notebooks. Includes environment checks, paper management, and LaTeX note-taking.",
+  "description": "Scaffold computational research project in Wolfram notebooks including gathering papers and LaTeX note-taking.",
   "author": {
     "name": "Pavel Hajek",
-    "email": "phajek@wolframinstitute.org"
+    "email": "p135246@gmail.com"
   },
   "license": "MIT",
   "keywords": ["wolfram", "mathematica", "research", "notebook", "latex"]

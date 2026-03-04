@@ -1,10 +1,16 @@
 #!/usr/bin/env bash
 # scaffold-project.sh — Create Wolfram research project directory structure
 #
-# Usage: scaffold-project.sh <ProjectName> ["Topic description"]
+# Usage: scaffold-project.sh <ProjectName> ["Topic"] [output-dir] ["Author Name"] ["email"]
 #
 # Called by Claude during computational-research skill execution.
 # Claude handles notebook creation and paper downloading via MCP separately.
+#
+# output-dir:   base directory where <ProjectName>/ will be created.
+#               Defaults to current directory. In Cowork mode, pass the
+#               mounted workspace path (e.g. /sessions/.../mnt/MyFolder/).
+# Author Name:  for \author{} in LaTeX templates. Defaults to "Author".
+# email:        for \email{} in LaTeX templates. Defaults to empty.
 
 set -euo pipefail
 
@@ -12,13 +18,19 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ASSETS_DIR="$SCRIPT_DIR/../skills/computational-research/assets"
 
 if [ $# -lt 1 ]; then
-  echo "Usage: scaffold-project.sh <ProjectName> [\"Topic description\"]" >&2
+  echo "Usage: scaffold-project.sh <ProjectName> [\"Topic description\"] [output-dir]" >&2
   exit 1
 fi
 
 PROJECT_NAME="$1"
 TOPIC_DESCRIPTION="${2:-A Wolfram model research project.}"
+OUTPUT_DIR="${3:-.}"
+AUTHOR_NAME="${4:-Pavel H\'ajek}"
+AUTHOR_EMAIL="${5:-p135246@gmail.com}"
 TODAY=$(date +%Y-%m-%d)
+
+mkdir -p "$OUTPUT_DIR"
+cd "$OUTPUT_DIR"
 
 # ── 1. Directories ─────────────────────────────────────────────────────────
 
@@ -67,7 +79,9 @@ ABSTRACT="We investigate $TOPIC_DESCRIPTION from a discrete and combinatorial pe
 sed \
   -e "s|{{TITLE}}|$WORKING_TITLE|g" \
   -e "s|{{ABSTRACT}}|$ABSTRACT|g" \
-  -e "s|{{CORE_SECTION_TITLE}}|${PROJECT_NAME} on graphs and hypergraphs|g" \
+  -e "s|{{CORE_SECTION_TITLE}}|${PROJECT_NAME}|g" \
+  -e "s|{{AUTHOR}}|$AUTHOR_NAME|g" \
+  -e "s|{{EMAIL}}|$AUTHOR_EMAIL|g" \
   "$ASSETS_DIR/article_template.tex" > "$PROJECT_NAME/Article/article1.tex"
 echo "Created: $PROJECT_NAME/Article/article1.tex"
 
@@ -77,29 +91,15 @@ sed \
   -e "s|{{TITLE}}|Working Notes: $PROJECT_NAME|g" \
   -e "s|{{ABSTRACT}}|Article-form working notes for the $PROJECT_NAME project ($TOPIC_DESCRIPTION). Written by Claude when asked; serves as source material for article1.tex.|g" \
   -e "s|{{CORE_SECTION_TITLE}}|Observations|g" \
+  -e "s|{{AUTHOR}}|$AUTHOR_NAME|g" \
+  -e "s|{{EMAIL}}|$AUTHOR_EMAIL|g" \
   "$ASSETS_DIR/article_template.tex" > "$PROJECT_NAME/Article/notes1.tex"
 echo "Created: $PROJECT_NAME/Article/notes1.tex"
 
 # ── 7. references.bib ────────────────────────────────────────────────────
 
-cat > "$PROJECT_NAME/Article/references.bib" << 'EOF'
-% References for: PROJECT_NAME
-
-@book{wolfram2020,
-  author    = {Stephen Wolfram},
-  title     = {A Project to Find the Fundamental Theory of Physics},
-  publisher = {Wolfram Media},
-  year      = {2020}
-}
-
-@article{gorard2020,
-  author  = {Jonathan Gorard},
-  title   = {Some Quantum Mechanical Properties of the {W}olfram Model},
-  journal = {Complex Systems},
-  volume  = {29},
-  pages   = {537--598},
-  year    = {2020}
-}
+cat > "$PROJECT_NAME/Article/references.bib" << EOF
+% References for: $PROJECT_NAME
 
 @misc{wolfram2020technical,
   author       = {Stephen Wolfram},
@@ -116,7 +116,6 @@ cat > "$PROJECT_NAME/Article/references.bib" << 'EOF'
   note         = {Online community resource}
 }
 EOF
-sed -i '' "s/PROJECT_NAME/$PROJECT_NAME/g" "$PROJECT_NAME/Article/references.bib"
 echo "Created: $PROJECT_NAME/Article/references.bib"
 
 # ── 8. Summary ────────────────────────────────────────────────────────────
