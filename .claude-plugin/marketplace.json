@@ -15,7 +15,7 @@
         "repo": "p135246/computational-research"
       },
       "description": "Scaffold Wolfram computational research projects and create Mathematica notebooks. Includes environment checks, paper management, and LaTeX note-taking.",
-      "version": "1.0.3",
+      "version": "1.0.4",
       "author": {
         "name": "Pavel Hajek",
         "email": "p135246@gmail.com"
