@@ -44,25 +44,9 @@ echo "Created directories: $PROJECT_NAME/{Code,Resources,Article}"
 cp "$ASSETS_DIR/tools_starter.wl" "$PROJECT_NAME/Code/Tools.wl"
 echo "Created: $PROJECT_NAME/Code/Tools.wl"
 
-# ── 3. ScopeName.wl + ScopeNameVisualization.wl stubs ────────────────────
-# Initial scope name = project name. New scopes get their own Name.wl +
-# NameVisualization.wl pair as the project grows.
-
-cat > "$PROJECT_NAME/Code/$PROJECT_NAME.wl" << EOF
-(* ::Package:: *)
-(* $PROJECT_NAME.wl — Core functions for $TOPIC_DESCRIPTION *)
-(* Load with: Get["Code/$PROJECT_NAME.wl"] *)
-EOF
-echo "Created: $PROJECT_NAME/Code/$PROJECT_NAME.wl"
-
-cat > "$PROJECT_NAME/Code/${PROJECT_NAME}Visualization.wl" << EOF
-(* ::Package:: *)
-(* ${PROJECT_NAME}Visualization.wl — Visualization functions for $TOPIC_DESCRIPTION *)
-(* Load with: Get["Code/${PROJECT_NAME}Visualization.wl"] *)
-EOF
-echo "Created: $PROJECT_NAME/Code/${PROJECT_NAME}Visualization.wl"
-
-# ── 4. CLAUDE.md ──────────────────────────────────────────────────────────
+# ── 3. CLAUDE.md ──────────────────────────────────────────────────────────
+# Topic-specific code files (<Topic>.wl, <Topic>Visualization.wl) are created
+# by the add-topic skill, not by this script.
 
 sed \
   -e "s/{{PROJECT_NAME}}/$PROJECT_NAME/g" \
@@ -71,7 +55,7 @@ sed \
   "$ASSETS_DIR/claude_template.md" > "$PROJECT_NAME/CLAUDE.md"
 echo "Created: $PROJECT_NAME/CLAUDE.md"
 
-# ── 5. article1.tex ───────────────────────────────────────────────────────
+# ── 4. article1.tex ───────────────────────────────────────────────────────
 
 WORKING_TITLE="${PROJECT_NAME}: A Computational Study"
 ABSTRACT="We investigate $TOPIC_DESCRIPTION from a discrete and combinatorial perspective, connecting classical structures to the framework of Wolfram models and hypergraph rewriting systems. This work develops computational tools in Wolfram Language and explores how standard results survive, break down, or give rise to new phenomena in the discrete setting."
@@ -84,7 +68,7 @@ sed \
   "$ASSETS_DIR/article_template.tex" > "$PROJECT_NAME/Article/article1.tex"
 echo "Created: $PROJECT_NAME/Article/article1.tex"
 
-# ── 6. notes1.tex ─────────────────────────────────────────────────────────
+# ── 5. notes1.tex ─────────────────────────────────────────────────────────
 
 sed \
   -e "s|{{TITLE}}|Working Notes: $PROJECT_NAME|g" \
@@ -94,7 +78,7 @@ sed \
   "$ASSETS_DIR/notes_template.tex" > "$PROJECT_NAME/Article/notes1.tex"
 echo "Created: $PROJECT_NAME/Article/notes1.tex"
 
-# ── 7. references.bib ────────────────────────────────────────────────────
+# ── 6. references.bib ────────────────────────────────────────────────────
 
 cat > "$PROJECT_NAME/Article/references.bib" << EOF
 % References for: $PROJECT_NAME
@@ -116,20 +100,18 @@ cat > "$PROJECT_NAME/Article/references.bib" << EOF
 EOF
 echo "Created: $PROJECT_NAME/Article/references.bib"
 
-# ── 8. Summary ────────────────────────────────────────────────────────────
+# ── 7. Summary ────────────────────────────────────────────────────────────
 
 echo ""
 echo "=== Project scaffolded: $PROJECT_NAME/ ==="
 echo ""
 echo "  Code/"
-echo "    Tools.wl                        — shared general utilities"
-echo "    $PROJECT_NAME.wl               — core functions (initial scope, empty)"
-echo "    ${PROJECT_NAME}Visualization.wl — visualization (initial scope, empty)"
-echo "  Resources/          — reference PDFs and notebooks (Author_Year_Title.pdf/.nb)"
+echo "    Tools.wl           — shared general utilities"
+echo "  Resources/            — reference PDFs and notebooks (Author_Year_Title.pdf/.nb)"
 echo "  Article/"
-echo "    article1.tex      — LaTeX article scaffold (your writing space)"
-echo "    notes1.tex        — article-form working notes (Claude writes here when asked)"
-echo "    references.bib    — BibTeX with Wolfram standard references"
-echo "  CLAUDE.md           — project context for future Claude sessions"
+echo "    article1.tex        — LaTeX article scaffold (your writing space)"
+echo "    notes1.tex          — article-form working notes (Claude writes here when asked)"
+echo "    references.bib      — BibTeX with Wolfram standard references"
+echo "  CLAUDE.md             — project context for future Claude sessions"
 echo ""
-echo "Next: Claude will create $PROJECT_NAME/1.nb and Resources1.nb via Wolfram MCP."
+echo "Next: Claude will run add-topic for the initial scope, then create Resources1.nb."

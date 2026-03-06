@@ -24,7 +24,7 @@ computation and structured research notes in LaTeX.
 
 ## What to ask the user
 
-Before scaffolding, you need two things:
+Before scaffolding, you need:
 
 1. **Project name** — a CamelCase name like `SyntheticInfrageometry` or
    `DiscreteRicciFlow`. This becomes the root folder name and the base name for
@@ -33,6 +33,7 @@ Before scaffolding, you need two things:
    For example: "Studying axiomatic geometry on graphs using shortest-path metrics"
    or "Ollivier-Ricci curvature on hypergraph rewriting systems". This goes into
    the CLAUDE.md and the research notes abstract.
+3. **Research depth** (optional) — how deep to go. See next section.
 
 The scaffold script also fills in the **author name** and **email** for LaTeX
 templates. Infer these from the user's profile or chat context. If unknown,
@@ -40,6 +41,21 @@ the script defaults to `Pavel H\'ajek` / `p135246@gmail.com`.
 
 If the user already provided the project name and topic in their message, don't
 ask again.
+
+## Research depth
+
+The user can request different levels of depth. Detect from their wording:
+
+| Level | Triggers | Papers | Step 7b | Topic scope |
+|-------|----------|--------|---------|-------------|
+| **Short** | "short", "quick", "brief", "just the basics" | 1 key paper | Skip | Minimal functions, brief notebook |
+| **Standard** (default) | — | 2–5 papers | Full | Thorough initial topic |
+| **Deep** | "deep", "thorough", "comprehensive" | Exhaustive search | Full + extra sources | Multiple initial topics, detailed implementations |
+
+This affects:
+- Step 7: number of papers downloaded
+- Step 7b: whether to search Wolfram Community (skip for short)
+- add-topic calls: how many functions to create, how detailed the notebook
 
 ## Cowork mode vs local mode
 
@@ -98,21 +114,27 @@ Use the combined results to determine the mode:
 ```
 <ProjectName>/
 ├── CLAUDE.md
-├── <ProjectName>1.nb          ← first Mathematica notebook
+├── <Topic>1.nb                ← topic notebook (created by add-topic skill)
+├── Test1.nb                   ← test notebook (created by make-test skill, not at scaffold time)
 ├── Code/
 │   ├── Tools.wl               ← shared general utilities
-│   ├── <ProjectName>.wl       ← core functions (initial scope)
-│   └── <ProjectName>Visualization.wl  ← visualization (initial scope)
-├── Resources1.nb                  ← paper summaries notebook (one section per paper)
-├── Resources/                     ← reference PDFs only (Author_Year_Title.pdf)
+│   ├── <Topic>.wl             ← core functions (created by add-topic)
+│   ├── <Topic>Visualization.wl  ← visualization (created by add-topic)
+│   ├── <Topic>Experiment.wl   ← experiments (created by make-experiment, not at scaffold time)
+│   └── <Topic>Test.wl         ← tests (created by make-test, not at scaffold time)
+├── Resources1.nb              ← paper summaries notebook (one section per paper)
+├── Resources/                 ← reference PDFs only (Author_Year_Title.pdf)
 └── Article/
     ├── article1.tex           ← LaTeX scaffold for user's article (user writes here)
     ├── notes1.tex             ← article-form working notes (Claude writes here on request)
     └── references.bib         ← BibTeX file with header comment
 ```
 
-All created files use number suffixes (`<ProjectName>1.nb`, `Resources1.nb`, etc.).
-When the user asks for a new notebook, increment the number (`<ProjectName>2.nb`,
+`<Topic>` starts as `<ProjectName>` for the initial scope. New topics are added
+via `/computational-research:add-topic`.
+
+All created files use number suffixes (`<Topic>1.nb`, `Resources1.nb`, etc.).
+When the user asks for a new notebook, increment the number (`<Topic>2.nb`,
 `Resources2.nb`). Edits to an existing file keep the same number unless the user
 explicitly asks for a new one.
 
@@ -137,12 +159,13 @@ all paths resolve correctly regardless of where the shell's CWD is.
 
 The script creates:
 - `<ProjectName>/Code/Tools.wl` — shared general utilities
-- `<ProjectName>/Code/<ProjectName>.wl` — core functions stub (initial scope)
-- `<ProjectName>/Code/<ProjectName>Visualization.wl` — visualization stub (initial scope)
 - `<ProjectName>/CLAUDE.md` — from claude_template.md with substitutions
 - `<ProjectName>/Article/article1.tex` — LaTeX article scaffold
 - `<ProjectName>/Article/notes1.tex` — working notes file
 - `<ProjectName>/Article/references.bib` — with standard Wolfram references
+
+**Note:** The script does NOT create topic-specific code files (`<Topic>.wl`,
+`<Topic>Visualization.wl`). Those are created by the add-topic skill in step 6.
 
 If the script fails (e.g., permission issue), fall back to creating these files
 manually using the templates in `${CLAUDE_PLUGIN_ROOT}/skills/computational-exploration/assets/`.
@@ -188,38 +211,30 @@ Add additional BibTeX entries whenever papers are downloaded (step 7).
 
 ### 5. Code files and scope convention
 
-Already created by the scaffold script. The Code/ layout follows a scope-based pattern:
+The Code/ layout follows a topic-based scope pattern. Each topic can have up to
+four files:
 
 - **`Tools.wl`** — shared general utilities used across the whole project.
-- **`<ScopeName>.wl`** — core functions for a named functional scope.
-- **`<ScopeName>Visualization.wl`** — visualization functions for that scope.
+- **`<Topic>.wl`** — core functions (created by add-topic skill).
+- **`<Topic>Visualization.wl`** — visualization functions (created by add-topic skill).
+- **`<Topic>Experiment.wl`** — experiment functions (created by make-experiment skill, on demand).
+- **`<Topic>Test.wl`** — tests using `VerificationTest` + `TestReport` (created by make-test skill, on demand).
 
-`ScopeName` is a CamelCase functional grouping (e.g. `RicciCurvature`,
-`HypergraphEmbedding`). The project name is used as the initial scope name at
-scaffold time. As the project grows, introduce new scope pairs (`Name.wl` +
-`NameVisualization.wl`) for each new functional area. Never put visualization
-code in the core `.wl` file.
+`Topic` is a CamelCase functional grouping (e.g. `RicciCurvature`,
+`HypergraphEmbedding`). The project name is used as the initial topic name.
+As the project grows, add new topics via `/computational-research:add-topic`.
+Never put visualization code in the core `.wl` file.
 
-### 6. Create the first notebook
+### 6. Create the initial topic
 
-Create `<ProjectName>1.nb` using the **create-notebook** skill's ExportString pipeline.
-This works uniformly in both local and Cowork mode — no mode-specific branching needed.
+Use the **add-topic** skill (`/computational-research:add-topic`) with the project
+name as the initial topic. This creates:
+- `Code/<ProjectName>.wl` — core functions
+- `Code/<ProjectName>Visualization.wl` — visualization functions
+- `<ProjectName>1.nb` — topic notebook with sections per function and illustrated calls
 
-Build a markdown string with a Title and a Setup section containing the three package
-loads, run the full pipeline (markdown → `ImportString` → post-process → `ExportString`)
-via the Wolfram MCP, then write the resulting string to `<ProjectName>/<ProjectName>1.nb`
-using the Write tool.
-
-Example markdown content:
-```
-# <ProjectName>
-## Setup
-```wolfram
-Get["Code/Tools.wl"]
-Get["Code/<ProjectName>.wl"]
-Get["Code/<ProjectName>Visualization.wl"]
-```
-```
+The add-topic skill handles code file creation, function population, and notebook
+generation via the create-notebook ExportString pipeline.
 
 ### 6b. Create the resources notebook
 
@@ -332,5 +347,9 @@ Tell the user:
 - Explain the notes/article relationship: `Article/notes1.tex` is the article-form
   working notes (say "note this" to have Claude write here); `Article/article1.tex`
   is the final article scaffold they write themselves, drawing from notes1.tex
-- Mention `/computational-research:add-resource` for adding future resources
+- Mention available skills for ongoing work:
+  - `/computational-research:add-resource` — add papers and references
+  - `/computational-research:add-topic` — add a new topic scope
+  - `/computational-research:make-experiment` — create experiments for a topic
+  - `/computational-research:make-test` — create tests for a topic
 - Suggest next steps based on the papers and topic

@@ -14,10 +14,16 @@ The interplay between these two approaches is a central question: when does the 
 ## Code structure
 
 - `Code/Tools.wl` — shared general utilities
-- `Code/{{PROJECT_NAME}}.wl` — core functions (initial scope)
-- `Code/{{PROJECT_NAME}}Visualization.wl` — visualization (initial scope)
 
-New functional scopes get their own `Name.wl` + `NameVisualization.wl` pair.
+Each topic scope can have:
+- `Code/<Topic>.wl` — core functions (add-topic)
+- `Code/<Topic>Visualization.wl` — visualization (add-topic)
+- `Code/<Topic>Experiment.wl` — experiments (make-experiment)
+- `Code/<Topic>Test.wl` — tests with VerificationTest + TestReport (make-test)
+
+Initial topic: `{{PROJECT_NAME}}`
+
+Notebooks: `<Topic>1.nb` per topic, `Test1.nb` for tests.
 
 ## Resources
 
@@ -26,9 +32,9 @@ New functional scopes get their own `Name.wl` + `NameVisualization.wl` pair.
 
 ## Notes
 
-`Notes/article1.tex` — LaTeX article scaffold (user writes here, drawing from notes1.tex)
-`Notes/notes1.tex` — article-form working notes (Claude writes here when asked; source material for the article)
-`Notes/references.bib` — BibTeX references
+`Article/article1.tex` — LaTeX article scaffold (user writes here, drawing from notes1.tex)
+`Article/notes1.tex` — article-form working notes (Claude writes here when asked; source material for the article)
+`Article/references.bib` — BibTeX references
 
 ## Loading code
 
