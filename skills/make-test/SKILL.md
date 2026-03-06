@@ -26,6 +26,7 @@ Read `Code/<Topic>.wl` to understand what functions exist and need testing.
 Create `Code/<Topic>Test.wl`:
 ```wolfram
 (* ::Package:: *)
+SetDirectory[NotebookDirectory[]]
 Get["Code/<Topic>.wl"]
 
 tests = {
@@ -69,7 +70,7 @@ If creating `Test1.nb` from scratch:
 ```
 # Tests
 ## Setup
-  (* nothing to load globally — each section loads its own test file *)
+  SetDirectory[NotebookDirectory[]]
 
 ## <Topic> Tests
   Get["Code/<Topic>Test.wl"]

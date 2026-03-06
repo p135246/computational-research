@@ -1,6 +1,6 @@
 {
   "name": "computational-research",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "Scaffold computational research project in Wolfram notebooks including gathering papers and LaTeX note-taking.",
   "author": {
     "name": "Pavel Hajek",

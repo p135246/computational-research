@@ -57,6 +57,7 @@ the read → append → rewrite workflow:
 
 ```
 ## Experiments
+  SetDirectory[NotebookDirectory[]]
   Get["Code/<Topic>Experiment.wl"]
 
 ### <ExperimentName1>

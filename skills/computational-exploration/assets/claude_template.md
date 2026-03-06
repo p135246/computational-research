@@ -39,6 +39,7 @@ Notebooks: `<Topic>1.nb` per topic, `Test1.nb` for tests.
 ## Loading code
 
 ```wolfram
+SetDirectory[NotebookDirectory[]]
 Get["Code/Tools.wl"]
 Get["Code/{{PROJECT_NAME}}.wl"]
 Get["Code/{{PROJECT_NAME}}Visualization.wl"]

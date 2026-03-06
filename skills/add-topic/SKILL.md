@@ -73,10 +73,12 @@ increment to `<Topic>2.nb`, etc.
 
 Use the **create-notebook** skill's ExportString pipeline.
 
-Notebook structure:
+Notebook structure (the Setup cell with `SetDirectory[NotebookDirectory[]]` must
+be an initialization cell so the working directory is set automatically on open):
 ```
 # <Topic>
 ## Setup
+  SetDirectory[NotebookDirectory[]]
   Get["Code/Tools.wl"]
   Get["Code/<Topic>.wl"]
   Get["Code/<Topic>Visualization.wl"]
