@@ -69,7 +69,11 @@ the read → append → rewrite workflow:
   ...
 ```
 
-If the user prefers a separate notebook, create `<Topic>Experiments1.nb` instead.
+If the user prefers a separate notebook, create `<Topic>Experiments1.nb` instead
+using the **create-notebook** skill's ExportString pipeline.
+
+Use LaTeX math (`$...$` inline, `$$...$$` display) in experiment descriptions
+to state what is being measured or varied.
 
 ### 3. Update CLAUDE.md
 

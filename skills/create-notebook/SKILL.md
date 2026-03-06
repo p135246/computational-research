@@ -13,6 +13,10 @@ description: >
 
 # Wolfram Notebook Creator
 
+**All skills that create or modify `.nb` files must use this skill's pipeline and
+conventions** — including math formatting, backtick escaping, and post-processing.
+This applies to add-topic, make-experiment, make-test, and computational-exploration.
+
 This skill creates Wolfram Notebooks (.nb) by converting carefully structured Markdown
 into notebook expressions via the Wolfram MCP. The core technique is:
 
@@ -188,6 +192,10 @@ md = "The curvature $\\kappa(x,y)$ is defined as\n\n$$\\kappa(x,y) = 1 - \\frac{
 Common LaTeX commands that work: `\frac`, `\sum`, `\int`, `\partial`,
 `\mathbb`, `\mathcal`, `\alpha`–`\omega`, `\in`, `\subset`, `\to`, `\mapsto`,
 `\leq`, `\geq`, `\neq`, `\infty`, `\ldots`, `\cdots`, `\text`.
+
+**Important:** Wolfram notation like `\[Alpha]` does NOT work in markdown text
+cells — it gets stripped to plain `[Alpha]`. Use LaTeX `$\alpha$` for all math
+in text. Wolfram notation only works inside `wolfram` code blocks (Input cells).
 
 ### Code blocks
 
