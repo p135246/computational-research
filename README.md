@@ -12,16 +12,16 @@ Read the motivation behind this plugin:
 ### 1. Add the marketplace
 
 ```bash
-claude plugin marketplace add p135246/claude-plugins
+claude plugin marketplace add WolframInstitute/ClaudePluginMarketplace
 ```
 
 In Claude Desktop, go to Settings → Plugins → Add Marketplace and enter
-`p135246/claude-plugins`.
+`WolframInstitute/ClaudePluginMarketplace`.
 
 ### 2. Install the plugin
 
 ```bash
-claude plugin install computational-research@p135246
+claude plugin install computational-research@WolframInstitute
 ```
 
 In Claude Desktop, find **computational-research** in the marketplace and click
